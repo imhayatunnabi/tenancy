@@ -14,6 +14,7 @@ use Stancl\Tenancy\ResourceSyncing\Events\CentralResourceDetachedFromTenant;
 use Stancl\Tenancy\ResourceSyncing\Events\SyncedResourceSaved;
 use Stancl\Tenancy\ResourceSyncing\Events\SyncMasterDeleted;
 use Stancl\Tenancy\ResourceSyncing\Events\SyncMasterRestored;
+use Stancl\Tenancy\ResourceSyncing\Events\SyncedResourceDeleted;
 
 trait ResourceSyncing
 {
@@ -25,8 +26,8 @@ trait ResourceSyncing
             }
         });
 
-        static::deleting(function (Syncable&Model $model) {
-            if ($model->shouldSync() && $model instanceof SyncMaster) {
+        static::deleted(function (Syncable&Model $model) {
+            if ($model->shouldSync()) {
                 $model->triggerDeleteEvent();
             }
         });
@@ -67,6 +68,8 @@ trait ResourceSyncing
             /** @var SyncMaster&Model $this */
             event(new SyncMasterDeleted($this, $forceDelete));
         }
+
+        event(new SyncedResourceDeleted($this, tenant(), $forceDelete));
     }
 
     public function triggerRestoredEvent(): void
