@@ -11,10 +11,10 @@ use Stancl\Tenancy\Contracts\UniqueIdentifierGenerator;
 use Stancl\Tenancy\Database\Contracts\TenantWithDatabase;
 use Stancl\Tenancy\ResourceSyncing\Events\CentralResourceAttachedToTenant;
 use Stancl\Tenancy\ResourceSyncing\Events\CentralResourceDetachedFromTenant;
+use Stancl\Tenancy\ResourceSyncing\Events\SyncedResourceDeleted;
 use Stancl\Tenancy\ResourceSyncing\Events\SyncedResourceSaved;
 use Stancl\Tenancy\ResourceSyncing\Events\SyncMasterDeleted;
 use Stancl\Tenancy\ResourceSyncing\Events\SyncMasterRestored;
-use Stancl\Tenancy\ResourceSyncing\Events\SyncedResourceDeleted;
 
 trait ResourceSyncing
 {

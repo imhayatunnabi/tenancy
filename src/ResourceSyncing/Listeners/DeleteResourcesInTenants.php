@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Stancl\Tenancy\ResourceSyncing\Listeners;
 
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Stancl\Tenancy\Listeners\QueueableListener;
 use Stancl\Tenancy\ResourceSyncing\Events\SyncMasterDeleted;
 
