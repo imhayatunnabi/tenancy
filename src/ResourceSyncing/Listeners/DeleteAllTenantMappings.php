@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Stancl\Tenancy\ResourceSyncing\Listeners;
 
-use Stancl\Tenancy\Listeners\QueueableListener;
-use Stancl\Tenancy\Events\TenantDeleted;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Stancl\Tenancy\Events\TenantDeleted;
+use Stancl\Tenancy\Listeners\QueueableListener;
 
 /**
  * When a tenant is deleted, clean up pivot records related to that tenant.
