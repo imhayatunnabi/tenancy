@@ -12,6 +12,12 @@ use Stancl\Tenancy\ResourceSyncing\Events\SyncedResourceDeleted;
 use Stancl\Tenancy\ResourceSyncing\Syncable;
 use Stancl\Tenancy\ResourceSyncing\SyncMaster;
 
+/**
+ * Deletes pivot records when a synced resource is deleted.
+ *
+ * If a SyncMaster (central resource) is deleted, all pivot records for that resource are deleted.
+ * If a Syncable (tenant resource) is deleted, only delete the pivot record for that tenant.
+ */
 class DeleteResourceMapping extends QueueableListener
 {
     public static bool $shouldQueue = false;
@@ -28,7 +34,9 @@ class DeleteResourceMapping extends QueueableListener
         // or the central resource was deleted using forceDelete()
         if ($event->forceDelete || ! in_array(SoftDeletes::class, class_uses_recursive($centralResource::class), true)) {
             Pivot::withoutEvents(function () use ($centralResource, $event) {
-                $centralResource?->tenants()->detach($event->tenant);
+                // $event->tenant is null when the deleted resource is a SyncMaster - all mappings are deleted in that case
+                // When $event->tenant is not null (= a Syncable was deleted), only delete the mapping for that tenant
+                $centralResource->tenants()->detach($event->tenant);
             });
         }
     }
