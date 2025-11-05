@@ -10,14 +10,15 @@ use Stancl\Tenancy\Events\TenantDeleted;
 use Stancl\Tenancy\Listeners\QueueableListener;
 
 /**
- * When a tenant is deleted, clean up pivot records related to that tenant
- * in the pivot tables specified in the $pivotTables property (see the property for details).
+ * Clean up pivot records related to the deleted tenant.
+ * The listener only cleans up the pivot tables specified
+ * in the $pivotTables property (see the property for details),
+ * and is intended for use with tables that do not have tenant foreign key constraints.
  *
- * Only use this listener for cleaning up tables without tenant foreign key constraints.
- * When using foreign key constraints, you'll have to use ->onDelete('cascade')
- * on the constraint definition for the cleanup instead of utilizing this listener because
- * the constraint will prevent tenant deletion before this listener can clean up the pivot records,
- * causing an integrity constraint violation.
+ * When using foreign key constraints, you'll still have to use ->onDelete('cascade')
+ * on the constraint (otherwise, deleting a tenant will throw a foreign key constraint violation).
+ * That way, the cleanup will happen on the database level, and this listener will essentially
+ * just perform an extra 'where' query.
  */
 class DeleteAllTenantMappings extends QueueableListener
 {
@@ -25,12 +26,16 @@ class DeleteAllTenantMappings extends QueueableListener
      * Pivot tables to clean up after a tenant is deleted,
      * formatted like ['table_name' => 'tenant_key_column'].
      *
-     * By default, the listener only cleans up the default pivot
-     * ('tenant_resources' with 'tenant_id' as the tenant key column).
+     * Since we cannot automatically detect which pivot tables
+     * you want to clean up, they have to be specified here.
+     *
+     * By default, resource syncing uses the tenant_resources table, and the records are associated
+     * to tenants by the tenant_id column (thus the ['tenant_resources' => 'tenant_id'] default).
      *
      * To customize this, set this property, e.g. in TenancyServiceProvider:
      * DeleteAllTenantMappings::$pivotTables = [
      *     'tenant_users' => 'tenant_id',
+     *     // You can also add more pivot tables here
      * ];
      *
      * Non-existent tables specified in the property will be skipped.
