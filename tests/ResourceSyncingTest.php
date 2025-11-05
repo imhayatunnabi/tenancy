@@ -104,7 +104,6 @@ beforeEach(function () {
     Event::listen(SyncMasterRestored::class, RestoreResourcesInTenants::class);
     Event::listen(CentralResourceAttachedToTenant::class, CreateTenantResource::class);
     Event::listen(CentralResourceDetachedFromTenant::class, DeleteResourceInTenant::class);
-    Event::listen(TenantDeleted::class, DeleteAllTenantMappings::class);
 
     // Run migrations on central connection
     pest()->artisan('migrate', [
@@ -913,12 +912,15 @@ test('tenant pivot records are deleted along with the tenants to which they belo
 
         // Custom pivot table
         $pivotTable = 'tenant_users';
-
-        DeleteAllTenantMappings::$pivotTables = [$pivotTable => 'tenant_id'];
     }
 
     if ($dbLevelOnCascadeDelete) {
         addTenantIdConstraintToPivot($pivotTable);
+    } else {
+        // Event-based cleanup
+        Event::listen(TenantDeleted::class, DeleteAllTenantMappings::class);
+
+        DeleteAllTenantMappings::$pivotTables = [$pivotTable => 'tenant_id'];
     }
 
     $syncMaster = $centralUserModel::create([
@@ -931,9 +933,9 @@ test('tenant pivot records are deleted along with the tenants to which they belo
 
     $syncMaster->tenants()->attach($tenant);
 
+    // Pivot records should be deleted along with the tenant
     $tenant->delete();
 
-    // Deleting tenant deletes its pivot records
     expect(DB::select("SELECT * FROM {$pivotTable} WHERE tenant_id = ?", [$tenant->getTenantKey()]))->toHaveCount(0);
 })->with([
     'db level on cascade delete' => true,
@@ -965,10 +967,12 @@ test('pivot record is automatically deleted with the tenant resource', function(
 });
 
 test('DeleteAllTenantMappings handles incorrect configuration correctly', function() {
+    Event::listen(TenantDeleted::class, DeleteAllTenantMappings::class);
+
     [$tenant1, $tenant2] = createTenantsAndRunMigrations();
 
     // Existing table, non-existent tenant key column
-    // The listener should throw an exception
+    // The listener should throw an 'unknown column' exception
     DeleteAllTenantMappings::$pivotTables = ['tenant_users' => 'non_existent_column'];
 
     // Should throw an exception when tenant is deleted
