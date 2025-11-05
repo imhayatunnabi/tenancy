@@ -82,7 +82,7 @@ class TenancyServiceProvider extends ServiceProvider
                     return $event->tenant;
                 })->shouldBeQueued(false),
 
-                ResourceSyncing\Listeners\DeleteAllTenantMappings::class,
+                // ResourceSyncing\Listeners\DeleteAllTenantMappings::class,
             ],
 
             Events\TenantMaintenanceModeEnabled::class => [],
