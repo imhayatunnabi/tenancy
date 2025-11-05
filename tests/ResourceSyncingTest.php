@@ -75,7 +75,7 @@ beforeEach(function () {
     CreateTenantResource::$shouldQueue = false;
     DeleteResourceInTenant::$shouldQueue = false;
     UpdateOrCreateSyncedResource::$scopeGetModelQuery = null;
-    DeleteAllTenantMappings::$pivotTables = [];
+    DeleteAllTenantMappings::$pivotTables = ['tenant_resources' => 'tenant_id'];
 
     // Reset global scopes on models (should happen automatically but to make this more explicit)
     Model::clearBootedModels();
